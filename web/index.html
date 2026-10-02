@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Daily Diet</title>
+<style>
+  :root { --bg:#f5f6f8; --card:#fff; --text:#1d2330; --muted:#6b7385; --line:#e3e6ee; --accent:#16a34a; --warn:#d97706; --bad:#dc2626; --p:#2563eb; --c:#d97706; --g:#9333ea; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#12151c; --card:#1b202b; --text:#e8ebf2; --muted:#98a0b3; --line:#2b3242; } }
+  * { box-sizing:border-box }
+  body { margin:0; font:15px/1.4 system-ui,sans-serif; background:var(--bg); color:var(--text) }
+  header { padding:14px 16px 0; max-width:760px; margin:auto }
+  h1 { font-size:20px; margin:0 0 10px }
+  nav { display:flex; gap:6px; border-bottom:1px solid var(--line) }
+  nav button { flex:1; background:none; border:0; padding:10px; font:inherit; color:var(--muted); border-bottom:3px solid transparent; cursor:pointer }
+  nav button.on { color:var(--text); border-color:var(--accent); font-weight:600 }
+  main { max-width:760px; margin:auto; padding:16px }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px; margin-bottom:14px }
+  .card h2 { font-size:15px; margin:0 0 10px }
+  label { display:block; font-size:12px; color:var(--muted); margin-bottom:3px }
+  input, select { width:100%; padding:9px; font:inherit; color:var(--text); background:var(--bg); border:1px solid var(--line); border-radius:8px }
+  .row { display:flex; gap:8px; align-items:flex-end; flex-wrap:wrap }
+  .row > div { flex:1; min-width:110px }
+  button.pri { background:var(--accent); color:#fff; border:0; padding:10px 16px; border-radius:8px; font:inherit; cursor:pointer }
+  button.link { background:none; border:0; color:var(--muted); cursor:pointer; font-size:18px; padding:0 4px }
+  .big { font-size:28px; font-weight:700 }
+  .muted { color:var(--muted); font-size:13px }
+  .bar { height:10px; background:var(--line); border-radius:6px; overflow:hidden; margin:8px 0 }
+  .bar > i { display:block; height:100%; background:var(--accent) }
+  .bar.over > i { background:var(--bad) }
+  .macros { display:flex; gap:8px; margin-top:8px }
+  .macros div { flex:1; text-align:center; padding:8px; border-radius:8px; background:var(--bg) }
+  .macros b { display:block; font-size:16px }
+  table { width:100%; border-collapse:collapse }
+  td, th { padding:7px 4px; border-bottom:1px solid var(--line); text-align:right; font-size:14px }
+  td:first-child, th:first-child { text-align:left }
+  th { color:var(--muted); font-weight:500; font-size:12px }
+  .pos { color:var(--warn) } .neg { color:var(--p) } .ok { color:var(--accent) }
+  .hidden { display:none }
+  .result { font-size:16px; line-height:1.6 }
+  .result b { font-size:20px }
+  .meal-h { margin:12px 0 4px; font-weight:600; font-size:13px; color:var(--muted); text-transform:uppercase; letter-spacing:.04em }
+</style>
+</head>
+<body>
+<header>
+  <h1>🥗 Daily Diet <span class="muted">· base TACO</span></h1>
+  <nav>
+    <button data-tab="dia" class="on">Hoje</button>
+    <button data-tab="sub">Substituíveis</button>
+  </nav>
+</header>
+
+<main>
+<!-- ============ ABA HOJE ============ -->
+<section id="tab-dia">
+  <div class="card">
+    <div class="row">
+      <div><label>Meta calórica do dia (kcal)</label><input id="meta" type="number" min="0" step="10" placeholder="ex.: 2000"></div>
+      <div><label>Data</label><input id="data" type="date"></div>
+    </div>
+    <div style="margin-top:14px">
+      <div class="big"><span id="tot-kcal">0</span> <span class="muted">/ <span id="tot-meta">—</span> kcal</span></div>
+      <div class="bar" id="bar"><i style="width:0"></i></div>
+      <div class="muted" id="restante"></div>
+      <div class="macros">
+        <div><b style="color:var(--p)" id="m-p">0 g</b>Proteína</div>
+        <div><b style="color:var(--c)" id="m-c">0 g</b>Carboidrato</div>
+        <div><b style="color:var(--g)" id="m-g">0 g</b>Gordura</div>
+        <div><b id="m-f">0 g</b>Fibra</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Adicionar alimento</h2>
+    <div class="row">
+      <div style="flex:3"><label>Alimento (TACO)</label><input id="busca" list="lista-alimentos" placeholder="Digite para buscar… ex.: arroz, frango"></div>
+      <div><label>Quantidade (g)</label><input id="qtd" type="number" min="0" step="1" placeholder="100"></div>
+      <div><label>Refeição</label>
+        <select id="refeicao">
+          <option>Café da manhã</option><option>Lanche da manhã</option><option selected>Almoço</option>
+          <option>Lanche da tarde</option><option>Jantar</option><option>Ceia</option>
+        </select>
+      </div>
+    </div>
+    <div class="muted" id="preview" style="margin:8px 0"></div>
+    <button class="pri" id="add">Adicionar</button>
+  </div>
+
+  <div class="card">
+    <h2>Refeições de hoje</h2>
+    <div id="diario"></div>
+  </div>
+
+  <div class="card">
+    <h2>Por categoria (TACO)</h2>
+    <table id="por-cat"></table>
+  </div>
+</section>
+
+<!-- ============ ABA SUBSTITUÍVEIS ============ -->
+<section id="tab-sub" class="hidden">
+  <div class="card">
+    <h2>Substituir um alimento por outro</h2>
+    <div class="row">
+      <div style="flex:3"><label>Alimento da dieta (referência)</label><input id="s-ref" list="lista-alimentos" placeholder="ex.: Arroz, integral, cozido"></div>
+      <div><label>Quantidade (g)</label><input id="s-ref-qtd" type="number" min="0" placeholder="150"></div>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <div style="flex:3"><label>Quero comer no lugar</label><input id="s-sub" list="lista-alimentos" placeholder="ex.: Batata, inglesa, cozida"></div>
+      <div><label>Igualar por</label>
+        <select id="s-macro">
+          <option value="auto">Macro principal da referência</option>
+          <option value="c">Carboidrato</option>
+          <option value="p">Proteína</option>
+          <option value="g">Gordura</option>
+          <option value="kcal">Calorias</option>
+        </select>
+      </div>
+    </div>
+    <div id="s-result" style="margin-top:14px"></div>
+  </div>
+</section>
+
+<datalist id="lista-alimentos"></datalist>
+</main>
+
+<script src="taco-data.js"></script>
+<script src="calc.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
